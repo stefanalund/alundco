@@ -15,7 +15,6 @@ import com.spotify.apollo.route.SyncHandler;
 import okio.ByteString;
 
 import java.util.Calendar;
-import java.util.Date;
 import java.util.Optional;
 
 /**
@@ -28,7 +27,7 @@ import java.util.Optional;
 final class AlundApp {
 
 	private static final String FULLNAME = "Stefan Ålund";
-	
+
 	private static Calendar birthday;
 
 	public static void main(String... args) throws LoadingException {
