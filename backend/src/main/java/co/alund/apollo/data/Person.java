@@ -11,6 +11,13 @@ public class Person {
 	private final String gender;
 	private final Calendar birthday;
 	
+	/**
+	 * A person in the family.
+	 * 
+	 * @param name Full name of the person.
+	 * @param gender Male or Female
+	 * @param birthday Date of birth in form "20110527"
+	 */
 	public Person(String name, String gender, String birthday) {
 		this.name = name;
 		this.gender = gender;
