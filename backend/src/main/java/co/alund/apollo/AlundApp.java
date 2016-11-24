@@ -12,9 +12,11 @@ import com.spotify.apollo.route.Middleware;
 import com.spotify.apollo.route.Route;
 import com.spotify.apollo.route.SyncHandler;
 
+import co.alund.apollo.data.Person;
 import okio.ByteString;
 
 import java.util.Calendar;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -26,9 +28,7 @@ import java.util.Optional;
  */
 final class AlundApp {
 
-	private static final String FULLNAME = "Stefan Ålund";
-
-	private static Calendar birthday;
+	private static List<Person> family;
 
 	public static void main(String... args) throws LoadingException {
 		HttpService.boot(AlundApp::init, "alund-co-service", args);
@@ -37,16 +37,20 @@ final class AlundApp {
 	static void init(Environment environment) {
 		SyncHandler<Response<Integer>> addHandler = context -> add(context.request());
 		
-		birthday = Calendar.getInstance();
-		birthday.set(1980, Calendar.JUNE, 2);
-
+		family.add(new Person("Anna Ålund", Person.FEMALE, "19800202"));
+		family.add(new Person("Stefan Ålund", Person.MALE, "19800602"));
+		family.add(new Person("Ella Ålund", Person.FEMALE, "20080713"));
+		family.add(new Person("Ines Ålund", Person.FEMALE, "19800602"));
+		family.add(new Person("Stefan Ålund", Person.MALE, "19800602"));
+		
 		environment.routingEngine()
 		.registerAutoRoute(Route.with(exceptionHandler(), "GET", "/add", addHandler))
 		.registerRoute(Route.sync("GET", "/name", AlundApp::name));
 	}
 
 	public static Response<ByteString> name(RequestContext requestContext) {
-		return Response.ok().withPayload(ByteString.encodeUtf8(FULLNAME));
+		String name = family.get(1).getName();
+		return Response.ok().withPayload(ByteString.encodeUtf8(name));
 	}
 
 	/**
