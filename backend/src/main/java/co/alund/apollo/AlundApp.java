@@ -37,11 +37,11 @@ final class AlundApp {
 	static void init(Environment environment) {
 		SyncHandler<Response<Integer>> addHandler = context -> add(context.request());
 		
-		family.add(new Person("Anna Ålund", Person.FEMALE, "19800202"));
-		family.add(new Person("Stefan Ålund", Person.MALE, "19800602"));
-		family.add(new Person("Ella Ålund", Person.FEMALE, "20080713"));
-		family.add(new Person("Ines Ålund", Person.FEMALE, "19800602"));
-		family.add(new Person("Stefan Ålund", Person.MALE, "19800602"));
+		family.add(new Person("Stefan Ålund", Person.MALE, "1980-06-02"));
+		family.add(new Person("Anna Ålund", Person.FEMALE, "1980-02-02"));
+		family.add(new Person("Ella Ålund", Person.FEMALE, "2008-07-13"));
+		family.add(new Person("Ines Ålund", Person.FEMALE, "2011-03-22"));
+		family.add(new Person("Hugo Ålund", Person.MALE, "2014-03-17"));
 		
 		environment.routingEngine()
 		.registerAutoRoute(Route.with(exceptionHandler(), "GET", "/add", addHandler))
@@ -49,7 +49,7 @@ final class AlundApp {
 	}
 
 	public static Response<ByteString> name(RequestContext requestContext) {
-		String name = family.get(1).getName();
+		String name = family.get(0).getName();
 		return Response.ok().withPayload(ByteString.encodeUtf8(name));
 	}
 
