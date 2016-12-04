@@ -16,7 +16,7 @@ public class Person {
 	 * 
 	 * @param name Full name of the person.
 	 * @param gender Male or Female
-	 * @param birthday Date of birth in form "20110527"
+	 * @param birthday Date of birth in form "2011-05-27"
 	 */
 	public Person(String name, String gender, String birthday) {
 		this.name = name;
@@ -24,10 +24,11 @@ public class Person {
 		
 		this.birthday = Calendar.getInstance();
 		try {
+			String[] dateComponents = birthday.split("-"); 
 			this.birthday.set(
-					Integer.parseInt(birthday.substring(0, 3)),
-					Integer.parseInt(birthday.substring(4, 5)),
-					Integer.parseInt(birthday.substring(6, 7))
+					Integer.parseInt(dateComponents[0]),
+					Integer.parseInt(dateComponents[1]),
+					Integer.parseInt(dateComponents[2])
 					);
 		} catch (Exception e) {
 			System.err.println("Failed to parse birthday string");
@@ -47,4 +48,10 @@ public class Person {
 	public Calendar getBirthday() {
 		return birthday;
 	}
+	
+	/*
+	public String toString() {
+		return "{\"name";
+	}
+	*/
 }
