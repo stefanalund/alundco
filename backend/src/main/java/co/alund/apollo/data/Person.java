@@ -48,10 +48,4 @@ public class Person {
 	public Calendar getBirthday() {
 		return birthday;
 	}
-	
-	/*
-	public String toString() {
-		return "{\"name";
-	}
-	*/
 }

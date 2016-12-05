@@ -1,5 +1,8 @@
 package co.alund.apollo;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.spotify.apollo.Environment;
 import com.spotify.apollo.Request;
 import com.spotify.apollo.RequestContext;
@@ -8,6 +11,7 @@ import com.spotify.apollo.Status;
 import com.spotify.apollo.httpservice.HttpService;
 import com.spotify.apollo.httpservice.LoadingException;
 import com.spotify.apollo.route.AsyncHandler;
+import com.spotify.apollo.route.JsonSerializerMiddlewares;
 import com.spotify.apollo.route.Middleware;
 import com.spotify.apollo.route.Route;
 import com.spotify.apollo.route.SyncHandler;
@@ -15,6 +19,9 @@ import com.spotify.apollo.route.SyncHandler;
 import co.alund.apollo.data.Person;
 import okio.ByteString;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
@@ -29,43 +36,41 @@ import java.util.Optional;
 final class AlundApp {
 
 	private static List<Person> family;
+	
+	private static ObjectMapper objectMapper = new ObjectMapper();
+	private static ObjectWriter objectWriter = objectMapper.writer();
 
 	public static void main(String... args) throws LoadingException {
 		HttpService.boot(AlundApp::init, "alund-co-service", args);
 	}
 
 	static void init(Environment environment) {
-		SyncHandler<Response<Integer>> addHandler = context -> add(context.request());
-		
-		family.add(new Person("Stefan Ålund", Person.MALE, "1980-06-02"));
-		family.add(new Person("Anna Ålund", Person.FEMALE, "1980-02-02"));
-		family.add(new Person("Ella Ålund", Person.FEMALE, "2008-07-13"));
-		family.add(new Person("Ines Ålund", Person.FEMALE, "2011-03-22"));
-		family.add(new Person("Hugo Ålund", Person.MALE, "2014-03-17"));
+		family = Arrays.asList(
+				new Person("Stefan Ålund", Person.MALE, "1980-06-02"), 
+				new Person("Anna Ålund", Person.FEMALE, "1980-02-02"),
+				new Person("Ella Ålund", Person.FEMALE, "2008-07-13"),
+				new Person("Ines Ålund", Person.FEMALE, "2011-03-22"),
+				new Person("Hugo Ålund", Person.MALE, "2014-03-17"));
 		
 		environment.routingEngine()
-		.registerAutoRoute(Route.with(exceptionHandler(), "GET", "/add", addHandler))
-		.registerRoute(Route.sync("GET", "/name", AlundApp::name));
+		.registerRoute(Route.sync("GET", "/stefan", AlundApp::name).withMiddleware(
+				JsonSerializerMiddlewares.jsonSerializeResponse(objectWriter)))
+		.registerRoute(Route.sync("GET", "/family", AlundApp::familyList).withMiddleware(
+						JsonSerializerMiddlewares.jsonSerializeResponse(objectWriter)));
 	}
-
-	public static Response<ByteString> name(RequestContext requestContext) {
-		String name = family.get(0).getName();
-		return Response.ok().withPayload(ByteString.encodeUtf8(name));
+	
+	public static Response<Person> name(RequestContext requestContext) {
+		try {
+			return Response.ok().withPayload(family.get(0));
+		} catch (Exception e) {
+			return Response.forStatus(Status.BAD_REQUEST);
+		}
 	}
-
-	/**
-	 * A simple adder of request parameters {@code t1} and {@code t2}
-	 *
-	 * @param request  The request to handle the addition for
-	 * @return A response of an integer representing the sum
-	 */
-	static Response<Integer> add(Request request) {
-		Optional<String> t1 = request.parameter("t1");
-		Optional<String> t2 = request.parameter("t2");
-		if (t1.isPresent() && t2.isPresent()) {
-			int result = Integer.valueOf(t1.get()) + Integer.valueOf(t2.get());
-			return Response.forPayload(result);
-		} else {
+	
+	public static Response<List<Person>> familyList(RequestContext requestContext) {
+		try {
+			return Response.ok().withPayload(family);
+		} catch (Exception e) {
 			return Response.forStatus(Status.BAD_REQUEST);
 		}
 	}
