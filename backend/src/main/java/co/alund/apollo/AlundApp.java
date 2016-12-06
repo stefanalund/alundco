@@ -1,10 +1,11 @@
 package co.alund.apollo;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import java.util.Arrays;
+import java.util.List;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.spotify.apollo.Environment;
-import com.spotify.apollo.Request;
 import com.spotify.apollo.RequestContext;
 import com.spotify.apollo.Response;
 import com.spotify.apollo.Status;
@@ -17,20 +18,9 @@ import com.spotify.apollo.route.Route;
 import com.spotify.apollo.route.SyncHandler;
 
 import co.alund.apollo.data.Person;
-import okio.ByteString;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Optional;
 
 /**
  * Backend service for my About Me web site.
- *
- * It uses a synchronous route to evaluate addition and a middleware
- * that translates uncaught exceptions into error code 418.
  *
  */
 final class AlundApp {
@@ -56,20 +46,47 @@ final class AlundApp {
 		.registerRoute(Route.sync("GET", "/stefan", AlundApp::name).withMiddleware(
 				JsonSerializerMiddlewares.jsonSerializeResponse(objectWriter)))
 		.registerRoute(Route.sync("GET", "/family", AlundApp::familyList).withMiddleware(
-						JsonSerializerMiddlewares.jsonSerializeResponse(objectWriter)));
+						JsonSerializerMiddlewares.jsonSerializeResponse(objectWriter)))
+		.registerRoute(Route.sync("GET", "/family/<name>", AlundApp::member).withMiddleware(
+				JsonSerializerMiddlewares.jsonSerializeResponse(objectWriter)));
 	}
 	
 	public static Response<Person> name(RequestContext requestContext) {
-		try {
-			return Response.ok().withPayload(family.get(0));
-		} catch (Exception e) {
-			return Response.forStatus(Status.BAD_REQUEST);
-		}
+		Person member = familyMemberByName("stefan");
+		return familyMemberResponse(member);
 	}
 	
 	public static Response<List<Person>> familyList(RequestContext requestContext) {
 		try {
 			return Response.ok().withPayload(family);
+		} catch (Exception e) {
+			return Response.forStatus(Status.BAD_REQUEST);
+		}
+	}
+	
+	public static Response<Person> member(RequestContext requestContext) {
+		String name = requestContext.pathArgs().get("name");
+		if (name == null)
+			return Response.forStatus(Status.NOT_FOUND);
+
+		Person member = familyMemberByName(name);
+		return familyMemberResponse(member);
+	}
+	
+	private static Person familyMemberByName(String name) {
+		name = name.toLowerCase();
+		for (Person familyMember : family) {
+			String surname = familyMember.getName().split(" ")[0].toLowerCase();
+			if (surname.equals(name))
+				return familyMember;
+		}
+		System.out.println("Could not find member: " + name);
+		return null;
+	}
+	
+	private static Response<Person> familyMemberResponse(Person member) {
+		try {
+			return Response.ok().withPayload(member);
 		} catch (Exception e) {
 			return Response.forStatus(Status.BAD_REQUEST);
 		}
