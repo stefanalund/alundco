@@ -10,6 +10,7 @@ public class Person {
 	private final String name;
 	private final String gender;
 	private final Calendar birthday;
+	private int age;
 	
 	/**
 	 * A person in the family.
@@ -34,7 +35,14 @@ public class Person {
 			System.err.println("Failed to parse birthday string");
 		}
 		
-		System.out.println(name + " celebrates their birthday at " + this.birthday);
+		System.out.println(name + " is " + getAge() + " years old");
+	}
+	
+	private int calculateAge() {
+		long ageInMillis = System.currentTimeMillis() - this.birthday.getTimeInMillis();
+		Calendar myAge = Calendar.getInstance();
+		myAge.setTimeInMillis(ageInMillis);
+		return myAge.get(Calendar.YEAR);
 	}
 
 	public String getName() {
@@ -47,5 +55,11 @@ public class Person {
 
 	public Calendar getBirthday() {
 		return birthday;
+	}
+	
+	public int getAge() {
+		if (age == 0)
+			age = calculateAge();
+		return age;
 	}
 }
